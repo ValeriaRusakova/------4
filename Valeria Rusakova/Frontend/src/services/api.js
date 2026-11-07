@@ -3,7 +3,7 @@
 // The components never call fetch() directly - they use these functions.
 // Note: there is NO OpenAI key here. Only the server talks to OpenAI.
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // A small helper that sends a request and returns the JSON answer.
 // If something goes wrong it throws an Error with a friendly Hebrew message.
@@ -31,12 +31,22 @@ async function request(path, options = {}) {
   return data;
 }
 
-// POST /api/conversations -> { id, created_at }
+// GET /api/conversations -> list of conversations for the sidebar
+export function getConversations() {
+  return request("/api/conversations");
+}
+
+// POST /api/conversations -> { id, title, created_at, updated_at }
 export function createConversation() {
   return request("/api/conversations", { method: "POST" });
 }
 
-// POST /api/conversations/{id}/messages -> { user_message, assistant_message }
+// GET /api/conversations/{id}/messages -> all messages of one conversation
+export function getMessages(conversationId) {
+  return request(`/api/conversations/${conversationId}/messages`);
+}
+
+// POST /api/conversations/{id}/messages -> { user_message, assistant_message, conversation }
 export function sendMessage(conversationId, content) {
   return request(`/api/conversations/${conversationId}/messages`, {
     method: "POST",

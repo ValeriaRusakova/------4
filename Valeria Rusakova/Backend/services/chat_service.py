@@ -11,14 +11,21 @@ How context works (no complicated memory needed):
 we take ALL previous messages of the SAME conversation from MySQL (oldest first),
 add the new user message at the end, and send the whole list to the model.
 That is how the model "remembers" what was said before.
+
+Tools: we also give the model a "tool" called generate_image.
+When the user asks for a picture, the model decides by itself to call this tool,
+we run it, and then the model writes a short answer about the image.
 """
 
 import logging
 import os
 
 from dotenv import load_dotenv
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
+
+from services.image_service import ImageServiceError, create_image
 
 load_dotenv()
 
@@ -30,12 +37,32 @@ OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 SYSTEM_PROMPT = (
     "You are ValGPT, a friendly and helpful assistant. "
     "Answer in the same language the user writes in (Hebrew or English). "
-    "Keep answers clear and concise."
+    "Keep answers clear and concise. "
+    "When the user asks you to draw, create or generate a picture, use the generate_image tool. "
+    "After the image is ready, describe it in one short sentence."
 )
 
 
 class ChatServiceError(Exception):
     """Raised when we could not get an answer from OpenAI."""
+
+
+@tool
+def generate_image(prompt: str) -> str:
+    """Create an image from a detailed English description of what to draw."""
+    # The docstring above is sent to the model - it explains when and how to use the tool.
+    return create_image(prompt)
+
+
+def create_llm():
+    """Create the LangChain connection to the OpenAI chat model."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        logger.error("OPENAI_API_KEY is missing in the .env file")
+        raise ChatServiceError("OpenAI is not configured")
+
+    # timeout: don't wait forever; max_retries: try again on short network problems.
+    return ChatOpenAI(model=OPENAI_MODEL, api_key=api_key, timeout=60, max_retries=2)
 
 
 def build_langchain_messages(history, new_user_text):
@@ -58,24 +85,65 @@ def build_langchain_messages(history, new_user_text):
 
 
 def get_ai_reply(history, new_user_text):
-    """Send the full conversation to OpenAI and return the answer text."""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        logger.error("OPENAI_API_KEY is missing in the .env file")
-        raise ChatServiceError("OpenAI is not configured")
-
-    # ChatOpenAI = LangChain's connector to OpenAI chat models.
-    # timeout: don't wait forever; max_retries: try again on short network problems.
-    llm = ChatOpenAI(model=OPENAI_MODEL, api_key=api_key, timeout=60, max_retries=2)
-
+    """
+    Send the full conversation to OpenAI.
+    Returns two values: (answer_text, image_url).
+    image_url is None when no image was created.
+    """
+    llm = create_llm()
+    llm_with_tools = llm.bind_tools([generate_image])  # tell the model the tool exists
     messages = build_langchain_messages(history, new_user_text)
+    image_url = None
 
     try:
-        response = llm.invoke(messages)
+        response = llm_with_tools.invoke(messages)
+
+        # Did the model decide to use the image tool?
+        if response.tool_calls:
+            messages.append(response)
+
+            for tool_call in response.tool_calls:
+                try:
+                    image_url = generate_image.invoke(tool_call["args"])
+                    tool_result = "The image was created and is shown to the user."
+                except ImageServiceError:
+                    tool_result = "Image creation failed. Tell the user to try again later."
+                # Tell the model what happened with the tool
+                messages.append(ToolMessage(content=tool_result, tool_call_id=tool_call["id"]))
+
+            # Ask the model again, now it writes the final answer for the user
+            response = llm_with_tools.invoke(messages)
+
     except Exception as error:
         # Write the real error to the server log only - never send it to the browser,
         # because error texts can contain technical details we don't want to expose.
         logger.error("OpenAI request failed: %s", type(error).__name__)
         raise ChatServiceError("Could not get an answer from OpenAI") from error
 
-    return response.content
+    return response.content, image_url
+
+
+def create_title(first_user_text, first_answer):
+    """
+    Ask the model for a short topic (2-4 words) for the sidebar.
+    If it fails, we simply use the beginning of the user's message.
+    """
+    fallback_title = first_user_text[:40]
+
+    try:
+        llm = create_llm()
+        response = llm.invoke([
+            SystemMessage(content=(
+                "Write a short topic title (2-4 words) for this conversation, "
+                "in the same language as the user. Return only the title, without quotes."
+            )),
+            HumanMessage(content=f"User: {first_user_text}\nAssistant: {first_answer[:500]}"),
+        ])
+        title = response.content.strip().strip('"').strip("'")
+    except Exception as error:
+        logger.error("Title generation failed: %s", type(error).__name__)
+        return fallback_title
+
+    if title == "":
+        return fallback_title
+    return title[:100]  # the database column holds up to 100 characters

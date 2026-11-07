@@ -32,7 +32,12 @@ DATABASE_URL = (
 )
 
 # pool_pre_ping=True checks the connection is still alive before using it.
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+# init_command: save every time in UTC. The browser converts it to the user's local time.
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args={"init_command": "SET time_zone = '+00:00'"},
+)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 

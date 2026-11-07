@@ -6,21 +6,25 @@ The entry point of the server. Run it with:
     uvicorn main:app --reload
 
 It creates the FastAPI app, allows the React site to call it (CORS),
-adds a health-check endpoint, and plugs in the conversation routes.
+adds a health-check endpoint, plugs in the conversation routes,
+and shares the folder of AI-generated images.
 """
 
 import logging
+import mimetypes
 import os
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from database import SessionLocal
 from routes.conversations import router as conversations_router
+from services.image_service import IMAGES_FOLDER
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -61,3 +65,10 @@ def health_check():
 
 
 app.include_router(conversations_router)
+
+# Share the folder of AI-generated images, so the browser can show them:
+# Backend/generated_images/abc.webp  ->  http://localhost:8000/images/abc.webp
+# (Some Windows computers don't know the .webp type, so we register it.)
+mimetypes.add_type("image/webp", ".webp")
+os.makedirs(IMAGES_FOLDER, exist_ok=True)
+app.mount("/images", StaticFiles(directory=IMAGES_FOLDER), name="images")

@@ -1,23 +1,136 @@
 /* =====================================================================
    App.css - all the styles of the site.
-   Colors are defined once as variables, so they are easy to change.
+
+   How the themes work:
+   All colors are "variables" (--name). The light colors are written in :root.
+   When <html data-theme="dark">, the dark block below replaces them.
+   The accessibility options work the same way (data-contrast, data-font-size...).
    ===================================================================== */
 
+/* ---------- 1. Colors: light mode (default) ---------- */
 :root {
-  --color-background: #f6f7fb;
-  --color-surface: #ffffff;
-  --color-text: #1f2333;
-  --color-text-soft: #5b6178;
-  --color-border: #e3e6ef;
-  --color-primary: #5b4bdb;        /* purple - buttons and user bubbles */
-  --color-primary-dark: #4536b8;
-  --color-assistant-bubble: #ffffff;
-  --color-error-bg: #fdecec;
-  --color-error-text: #a61b1b;
-  --radius: 18px;
-  --shadow: 0 2px 10px rgba(31, 35, 51, 0.06);
-  font-family: "Segoe UI", "Rubik", "Heebo", Arial, sans-serif;
+  --page-bg: #f5f7fc;
+  --surface: #ffffff;
+  --surface-soft: #f1f4fa;
+  --text: #1c2237;
+  --text-soft: #5a6178;
+  --border: #e3e8f2;
+  --primary: #1e66e0;                /* blue - links, active tab */
+  --primary-soft: #e8f0fe;           /* light blue - active item, tips */
+  --gradient: linear-gradient(90deg, #1f6fe5, #6a4ae8);
+  --gradient-text: linear-gradient(90deg, #1f6fe5, #7c4dff);
+  --banner-bg: linear-gradient(135deg, #eaf2ff 0%, #f1edff 100%);
+  --card-bg: linear-gradient(160deg, #eef4ff 0%, #f3eeff 100%);
+  --user-bubble: #1e66e0;
+  --user-bubble-text: #ffffff;
+  --bot-bubble: #f0f3f9;
+  --bot-bubble-line: #b9cdfa;
+  --avatar-user-bg: #dbe7ff;
+  --error-bg: #fdecec;
+  --error-text: #a61b1b;
+  --focus: #f59e0b;                  /* orange focus ring - visible on light and dark */
+  --shadow: 0 2px 12px rgba(28, 34, 55, 0.06);
+  --radius: 16px;
+
+  color-scheme: light;
+  font-family: "Rubik", "Segoe UI", Arial, sans-serif;
 }
+
+/* ---------- 2. Colors: dark mode ---------- */
+[data-theme="dark"] {
+  --page-bg: #0e1120;
+  --surface: #161a2d;
+  --surface-soft: #1e2339;
+  --text: #e9ecf8;
+  --text-soft: #a4abc8;
+  --border: #2a3050;
+  --primary: #7aa7ff;
+  --primary-soft: #232c4d;
+  --gradient-text: linear-gradient(90deg, #6ea8ff, #a78bfa);
+  --banner-bg: linear-gradient(135deg, #18213d 0%, #221a3d 100%);
+  --card-bg: linear-gradient(160deg, #1a2342 0%, #241c44 100%);
+  --user-bubble: #2f6fe0;
+  --bot-bubble: #1e2339;
+  --bot-bubble-line: #3d4f8c;
+  --avatar-user-bg: #263463;
+  --error-bg: #3b1d24;
+  --error-text: #ffb4b4;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+
+  color-scheme: dark;
+}
+
+/* ---------- 3. Accessibility options ---------- */
+
+/* Text size: everything is measured in rem, so changing the root size grows everything */
+[data-font-size="large"] { font-size: 112.5%; }
+[data-font-size="xlarge"] { font-size: 125%; }
+
+/* High contrast: pure black/white and strong borders */
+[data-contrast="high"] {
+  --page-bg: #ffffff;
+  --surface: #ffffff;
+  --surface-soft: #ffffff;
+  --text: #000000;
+  --text-soft: #000000;
+  --border: #000000;
+  --primary: #0039a6;
+  --primary-soft: #fff3c4;
+  --banner-bg: #ffffff;
+  --card-bg: #ffffff;
+  --user-bubble: #0039a6;
+  --bot-bubble: #ffffff;
+  --bot-bubble-line: #000000;
+}
+
+[data-theme="dark"][data-contrast="high"] {
+  --page-bg: #000000;
+  --surface: #000000;
+  --surface-soft: #000000;
+  --text: #ffffff;
+  --text-soft: #ffffff;
+  --border: #ffffff;
+  --primary: #ffd400;
+  --primary-soft: #333300;
+  --banner-bg: #000000;
+  --card-bg: #000000;
+  --user-bubble: #000000;
+  --bot-bubble: #000000;
+  --bot-bubble-line: #ffffff;
+}
+
+[data-contrast="high"] .bubble,
+[data-contrast="high"] .message-form,
+[data-contrast="high"] .welcome-banner {
+  border: 2px solid var(--border);
+}
+
+/* Underline every link so links are easy to spot */
+[data-underline-links="true"] a {
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+}
+
+/* Stop animations - chosen in the menu, or set in the computer's settings */
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- 4. Base ---------- */
 
 * {
   box-sizing: border-box;
@@ -25,9 +138,21 @@
 
 body {
   margin: 0;
-  background: var(--color-background);
-  color: var(--color-text);
+  background: var(--page-bg);
+  color: var(--text);
   line-height: 1.6;
+}
+
+/* Thin, soft scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
 }
 
 button {
@@ -40,13 +165,13 @@ button:disabled {
   opacity: 0.55;
 }
 
-/* Accessibility: a clear outline when moving with the keyboard (Tab) */
+/* Clear outline when moving with the keyboard (Tab) */
 :focus-visible {
-  outline: 3px solid #f0a500;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 
-/* Accessibility: text only screen readers can "see" */
+/* Text that only screen readers "see" */
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -56,152 +181,477 @@ button:disabled {
   white-space: nowrap;
 }
 
-/* Accessibility: "skip to content" link, visible only when focused */
+/* "Skip to content" link - appears only when it gets keyboard focus */
 .skip-link {
   position: absolute;
   top: -100px;
   right: 16px;
-  background: var(--color-primary);
+  z-index: 50;
+  background: var(--primary);
   color: #fff;
   padding: 8px 16px;
   border-radius: 8px;
-  z-index: 10;
 }
 
 .skip-link:focus {
   top: 8px;
 }
 
-/* ---------- Page layout ---------- */
+.gradient-text {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+/* In high contrast, gradient text becomes a normal solid color */
+[data-contrast="high"] .gradient-text {
+  background: none;
+  color: var(--primary);
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.icon-button:hover {
+  background: var(--surface-soft);
+  color: var(--primary);
+}
+
+/* ---------- 5. Page layout ----------
+   Two columns. In RTL the first column is on the RIGHT:
+   [ main area (right) | sidebar (left) ]  - like the design image. */
 
 .app {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
   height: 100vh;
   height: 100dvh; /* better height on mobile browsers */
+  border-top: 3px solid #7c5cff;
+}
+
+.main-area {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
 }
 
 .main {
   flex: 1;
+  min-height: 0;
   display: flex;
   justify-content: center;
-  overflow: hidden;
   outline: none;
 }
 
-/* ---------- Header ---------- */
+/* ---------- 6. Top bar ---------- */
 
-.header {
+.topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  padding: 0 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
-.logo {
+.topbar-start,
+.topbar-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--color-text);
-  text-decoration: none;
-}
-
-.logo-icon {
-  color: var(--color-primary);
-}
-
-.nav-list {
-  display: flex;
   gap: 6px;
+}
+
+.menu-button {
+  display: none; /* shown only on small screens */
+}
+
+.tabs {
+  display: flex;
+  gap: 18px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.nav-link {
-  display: block;
-  padding: 6px 14px;
-  border-radius: 999px;
-  color: var(--color-text-soft);
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 6px 13px;
+  color: var(--text-soft);
   text-decoration: none;
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
 }
 
-.nav-link:hover {
-  background: var(--color-background);
+.tab:hover {
+  color: var(--primary);
 }
 
 /* NavLink adds "active" to the link of the current page */
-.nav-link.active {
-  background: var(--color-primary);
-  color: #fff;
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
 
-/* ---------- Chat page ---------- */
+/* ---------- 7. Accessibility menu ---------- */
 
-.chat {
+.a11y-menu {
+  position: relative;
+}
+
+.a11y-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: 250px;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  max-width: 820px;
-  padding: 0 16px;
+  gap: 10px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
-.chat-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 0;
+.a11y-title {
+  font-size: 1rem;
 }
 
-.conversation-label {
-  color: var(--color-text-soft);
+.a11y-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 12px 10px;
+  margin: 0;
+}
+
+.a11y-fieldset legend {
+  padding: 0 4px;
+  color: var(--text-soft);
   font-size: 0.9rem;
 }
 
+.a11y-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+.a11y-option input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--primary);
+}
+
+.a11y-reset {
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+/* ---------- 8. Sidebar ---------- */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  padding: 20px 16px;
+  background: var(--surface);
+  border-inline-start: 1px solid var(--border); /* the side that touches the main area */
+}
+
+.sidebar-close {
+  display: none; /* shown only on small screens */
+}
+
+.robot-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 14px;
+  text-align: center;
+  background: var(--card-bg);
+  border-radius: 18px;
+}
+
+.robot-glow {
+  filter: drop-shadow(0 8px 16px rgba(91, 108, 255, 0.35));
+  margin-bottom: 4px;
+}
+
+.robot-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.robot-card-text {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
 .new-chat-button {
-  background: var(--color-surface);
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 999px;
-  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--gradient);
+  color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 6px 16px rgba(80, 90, 230, 0.3);
 }
 
 .new-chat-button:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: #fff;
+  filter: brightness(1.08);
 }
 
-.messages {
+[data-contrast="high"] .new-chat-button {
+  background: var(--primary);
+  color: var(--page-bg);
+  box-shadow: none;
+}
+
+.history {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-title {
+  font-size: 0.95rem;
+  margin: 4px 6px 8px;
+}
+
+.history-empty {
+  padding: 0 6px;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.conversation-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 4px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 8px 4px 16px;
+  gap: 4px;
 }
 
-/* ---------- Welcome screen ---------- */
+.conversation-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  text-align: start;
+}
 
-.welcome {
-  margin: auto;
+.conversation-item:hover:not(:disabled) {
+  background: var(--surface-soft);
+}
+
+/* The open conversation */
+.conversation-item[aria-current="true"] {
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+[data-contrast="high"] .conversation-item[aria-current="true"] {
+  outline: 2px solid var(--border);
+}
+
+.conversation-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--surface-soft);
+  color: var(--text-soft);
+}
+
+.conversation-item[aria-current="true"] .conversation-icon {
+  background: var(--surface);
+  color: var(--primary);
+}
+
+.conversation-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis; /* long titles end with "..." */
+  white-space: nowrap;
+  font-size: 0.92rem;
+}
+
+.conversation-time {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.ideas-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 18px 12px 34px;
   text-align: center;
-  max-width: 520px;
-  color: var(--color-text-soft);
+  background: var(--card-bg);
+  border-radius: 16px;
+  color: #7c5cff;
 }
 
-.welcome h1 {
-  color: var(--color-text);
-  margin: 8px 0;
+.ideas-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--primary);
 }
 
-.welcome-icon {
-  font-size: 2.5rem;
-  color: var(--color-primary);
+.ideas-text {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.ideas-wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 34px;
+  fill: #7c5cff;
+  opacity: 0.15;
+}
+
+/* Hide the decoration card when the screen is not tall enough */
+@media (max-height: 760px) {
+  .ideas-card {
+    display: none;
+  }
+}
+
+/* ---------- 9. Chat area ---------- */
+
+.chat {
+  width: 100%;
+  max-width: 920px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 24px 0;
+}
+
+.messages-scroll {
+  position: relative; /* keeps the hidden screen-reader texts inside this scroll box */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 4px 12px;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 18px;
+}
+
+/* ---------- 10. Welcome banner ---------- */
+
+.welcome-banner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 20px;
+  text-align: center;
+  background: var(--banner-bg);
+  border-radius: 18px;
+}
+
+.welcome-avatar {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin-bottom: 4px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.welcome-title {
+  font-size: 1.45rem;
+}
+
+.welcome-text {
+  color: var(--text-soft);
+}
+
+.welcome-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--bot-bubble-line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.welcome-tip svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.banner-sparkle {
+  position: absolute;
+  color: #9db5ff;
+  opacity: 0.7;
+}
+
+.sparkle-1 {
+  top: 26px;
+  right: 8%;
+}
+
+.sparkle-2 {
+  bottom: 30px;
+  left: 7%;
 }
 
 .suggestions {
@@ -209,29 +659,30 @@ button:disabled {
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
 .suggestion {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  padding: 8px 14px;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 10px 14px;
-  color: var(--color-text);
+  background: var(--surface);
+  color: var(--text);
   box-shadow: var(--shadow);
 }
 
 .suggestion:hover:not(:disabled) {
-  border-color: var(--color-primary);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
-/* ---------- Message bubbles ---------- */
+/* ---------- 11. Message bubbles ---------- */
 
 .message-row {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 10px;
-  max-width: 85%;
+  max-width: 78%;
 }
 
 /* In RTL, "flex-start" is the RIGHT side: user messages on the right */
@@ -239,56 +690,122 @@ button:disabled {
   align-self: flex-start;
 }
 
-/* AI messages on the left side */
+/* AI messages on the LEFT side, with the robot to the left of the bubble */
 .message-row.assistant {
   align-self: flex-end;
   flex-direction: row-reverse;
 }
 
 .avatar {
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 0.7rem;
-  font-weight: 700;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex-shrink: 0;
+  border-radius: 50%;
 }
 
 .user .avatar {
-  background: #e4e0ff;
-  color: var(--color-primary-dark);
+  background: var(--avatar-user-bg);
+  color: var(--primary);
 }
 
 .assistant .avatar {
-  background: var(--color-primary);
-  color: #fff;
-  font-size: 1rem;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.bubble-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.user .bubble-column {
+  align-items: flex-start;
+}
+
+.assistant .bubble-column {
+  align-items: flex-end;
 }
 
 .bubble {
   padding: 10px 16px;
-  border-radius: var(--radius);
+  border-radius: 14px;
   box-shadow: var(--shadow);
-}
-
-.bubble p {
-  margin: 0;
-  white-space: pre-wrap; /* keep line breaks from the AI answer */
   overflow-wrap: anywhere;
 }
 
 .user .bubble {
-  background: var(--color-primary);
-  color: #fff;
-  border-bottom-right-radius: 4px;
+  background: var(--user-bubble);
+  color: var(--user-bubble-text);
+  border-start-start-radius: 4px; /* small corner next to the avatar */
+}
+
+.user .bubble p {
+  white-space: pre-wrap; /* keep the user's line breaks */
 }
 
 .assistant .bubble {
-  background: var(--color-assistant-bubble);
-  border: 1px solid var(--color-border);
-  border-bottom-left-radius: 4px;
+  background: var(--bot-bubble);
+  border-inline-start: 3px solid var(--bot-bubble-line);
+  border-start-end-radius: 4px;
+}
+
+.message-time {
+  padding: 0 4px;
+  font-size: 0.72rem;
+  color: var(--text-soft);
+}
+
+/* Markdown inside AI answers (lists, bold, code) */
+.markdown p + p,
+.markdown p + ul,
+.markdown p + ol,
+.markdown ul + p,
+.markdown ol + p {
+  margin-top: 8px;
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 4px 0;
+  padding-inline-start: 22px;
+}
+
+.markdown code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--surface);
+  font-size: 0.9em;
+}
+
+.markdown pre {
+  overflow-x: auto;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--surface);
+  direction: ltr;
+  text-align: left;
+}
+
+.markdown a {
+  color: var(--primary);
+}
+
+/* AI-generated image */
+.generated-image-link {
+  display: block;
+  margin-top: 10px;
+}
+
+.generated-image {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  border-radius: 12px;
 }
 
 /* "Typing" animation: three jumping dots */
@@ -302,15 +819,15 @@ button:disabled {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-text-soft);
+  background: var(--text-soft);
   animation: bounce 1.2s infinite;
 }
 
-.dot:nth-child(3) {
+.dot:nth-of-type(2) {
   animation-delay: 0.2s;
 }
 
-.dot:nth-child(4) {
+.dot:nth-of-type(3) {
   animation-delay: 0.4s;
 }
 
@@ -319,42 +836,49 @@ button:disabled {
   30% { transform: translateY(-5px); opacity: 1; }
 }
 
-/* ---------- Error + input area ---------- */
+/* ---------- 12. Error + input area ---------- */
 
 .error-message {
-  background: var(--color-error-bg);
-  color: var(--color-error-text);
-  border-radius: 12px;
-  padding: 10px 14px;
   margin-bottom: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 
 .message-form {
+  position: relative;
   display: flex;
-  gap: 10px;
   align-items: flex-end;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 22px;
-  padding: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin: 10px 0 18px;
+  padding: 6px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 26px;
   box-shadow: var(--shadow);
 }
 
 .message-form:focus-within {
-  border-color: var(--color-primary);
+  border-color: var(--primary);
 }
 
 .message-input {
   flex: 1;
+  align-self: center;
+  min-height: 2.5rem;
+  max-height: 160px;
+  padding: 8px 4px;
   border: none;
   resize: none;
-  font: inherit;
-  padding: 8px 12px;
-  max-height: 160px;
-  field-sizing: content; /* the box grows with the text (modern browsers) */
   background: transparent;
   color: inherit;
+  font: inherit;
+  field-sizing: content; /* the box grows with the text (modern browsers) */
+}
+
+.message-input::placeholder {
+  color: var(--text-soft);
 }
 
 .message-input:focus {
@@ -362,43 +886,69 @@ button:disabled {
 }
 
 .send-button {
-  background: var(--color-primary);
-  color: #fff;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
   border: none;
-  border-radius: 999px;
-  padding: 9px 22px;
-  font-weight: 600;
+  border-radius: 50%;
+  background: var(--gradient);
+  color: #ffffff;
 }
 
-.send-button:hover:not(:disabled) {
-  background: var(--color-primary-dark);
+[data-contrast="high"] .send-button {
+  background: var(--primary);
+  color: var(--page-bg);
 }
 
-/* ---------- About page ---------- */
+/* ---------- 13. About page ---------- */
 
 .about {
   width: 100%;
-  max-width: 760px;
-  padding: 24px 16px;
+  max-width: 780px;
+  padding: 28px 20px;
   overflow-y: auto;
 }
 
+.about-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.about-header h1 {
+  font-size: 1.8rem;
+}
+
 .about-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 8px 24px;
   margin-bottom: 16px;
+  padding: 18px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 
 .about-card h2 {
-  color: var(--color-primary);
+  margin-bottom: 8px;
   font-size: 1.15rem;
+  color: var(--primary);
+}
+
+.about-card p + p {
+  margin-top: 4px;
+}
+
+.feature-list {
+  margin: 8px 0 0;
+  padding-inline-start: 22px;
 }
 
 .tech-list {
   list-style: none;
+  margin: 0;
   padding: 0;
 }
 
@@ -406,7 +956,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   padding: 8px 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border);
 }
 
 .tech-list li:last-child {
@@ -414,33 +964,93 @@ button:disabled {
 }
 
 .tech-list span {
-  color: var(--color-text-soft);
+  color: var(--text-soft);
 }
 
-/* ---------- Small screens (mobile) ---------- */
+/* ---------- 14. Small screens (tablet / mobile) ----------
+   The sidebar becomes a "drawer" that slides in from the left. */
 
-@media (max-width: 600px) {
-  .header {
-    padding: 10px 14px;
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-button,
+  .sidebar-close {
+    display: grid;
+  }
+
+  .sidebar-close {
+    align-self: flex-start;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    width: min(300px, 85vw);
+    overflow-y: auto;
+    transform: translateX(-100%);
+    visibility: hidden; /* hidden = also skipped by Tab and screen readers */
+    transition: transform 0.25s ease, visibility 0.25s;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.25s ease, visibility 0s; /* visible at once, so it can get focus */
+  }
+
+  /* In the drawer the whole sidebar scrolls, not only the list */
+  .history {
+    flex: none;
+  }
+
+  .conversation-list {
+    overflow-y: visible;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .chat {
+    padding: 12px 12px 0;
   }
 
   .message-row {
-    max-width: 100%;
-  }
-
-  .avatar {
-    display: none;
-  }
-
-  .send-button {
-    padding: 9px 16px;
+    max-width: 94%;
   }
 }
 
-/* Accessibility: turn off animations for users who asked for less motion */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation: none !important;
-    scroll-behavior: auto !important;
+@media (max-width: 560px) {
+  .tabs {
+    gap: 8px;
+  }
+
+  .avatar {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .welcome-banner {
+    padding: 18px 14px;
+  }
+
+  .welcome-title {
+    font-size: 1.2rem;
+  }
+
+  .banner-sparkle {
+    display: none;
   }
 }

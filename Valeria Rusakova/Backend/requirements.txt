@@ -8,3 +8,4 @@ pymysql==1.1.1             # the MySQL "driver" SQLAlchemy uses to connect
 cryptography==45.0.3       # required by pymysql for MySQL 8 password login
 python-dotenv==1.1.0       # reads secrets from the .env file
 langchain-openai==0.3.18   # LangChain + ChatOpenAI for talking to the OpenAI model
+openai==1.109.1            # OpenAI's own library - used for creating images

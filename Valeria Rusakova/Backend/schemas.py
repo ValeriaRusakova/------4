@@ -7,10 +7,18 @@ FastAPI uses them to:
 2. Build the JSON responses.
 """
 
-from datetime import datetime
-from typing import Literal
+from datetime import datetime, timezone
+from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
+
+
+def to_utc_text(value):
+    """
+    MySQL gives us times without a time zone, but we know they are UTC.
+    Adding "+00:00" tells the browser it is UTC, so it can show the user's local time.
+    """
+    return value.replace(tzinfo=timezone.utc).isoformat()
 
 
 class MessageCreate(BaseModel):
@@ -29,19 +37,30 @@ class MessageOut(BaseModel):
     conversation_id: int
     role: Literal["user", "assistant"]
     content: str
+    image_url: Optional[str] = None  # set only when the AI created an image
     created_at: datetime
 
     # Allows building this schema directly from a SQLAlchemy Message object
     model_config = ConfigDict(from_attributes=True)
 
+    @field_serializer("created_at")
+    def serialize_time(self, value):
+        return to_utc_text(value)
+
 
 class ConversationOut(BaseModel):
-    """A conversation as returned to the client."""
+    """A conversation as returned to the client (also used for the sidebar list)."""
 
     id: int
+    title: Optional[str] = None
     created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("created_at", "updated_at")
+    def serialize_time(self, value):
+        return to_utc_text(value)
 
 
 class ChatReply(BaseModel):
@@ -49,3 +68,4 @@ class ChatReply(BaseModel):
 
     user_message: MessageOut
     assistant_message: MessageOut
+    conversation: ConversationOut  # includes the (maybe new) topic title for the sidebar

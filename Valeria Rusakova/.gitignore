@@ -7,6 +7,9 @@ venv/
 __pycache__/
 *.pyc
 
+# AI-generated images (created while the chat runs)
+Backend/generated_images/
+
 # Node / React
 node_modules/
 dist/
