@@ -1,0 +1,10 @@
+# Python libraries needed by the server.
+# Install with:  pip install -r requirements.txt
+
+fastapi==0.115.12          # web framework for building the REST API
+uvicorn[standard]==0.34.2  # the server that runs the FastAPI app
+sqlalchemy==2.0.41         # talks to MySQL using Python classes instead of raw SQL
+pymysql==1.1.1             # the MySQL "driver" SQLAlchemy uses to connect
+cryptography==45.0.3       # required by pymysql for MySQL 8 password login
+python-dotenv==1.1.0       # reads secrets from the .env file
+langchain-openai==0.3.18   # LangChain + ChatOpenAI for talking to the OpenAI model

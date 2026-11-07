@@ -1,0 +1,149 @@
+{
+  "info": {
+    "name": "ValGPT API",
+    "description": "Tests for the ValGPT chat server. Run the requests in order (top to bottom). The server must be running on http://localhost:8000.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "conversationId", "value": "" },
+    { "key": "secondConversationId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Health check",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('Server and DB are OK', () => {",
+        "    const body = pm.response.json();",
+        "    pm.expect(body.status).to.eql('ok');",
+        "    pm.expect(body.database).to.eql('connected');",
+        "});"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/health" }
+    },
+    {
+      "name": "2. Create conversation",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 201', () => pm.response.to.have.status(201));",
+        "const body = pm.response.json();",
+        "pm.test('Has numeric id', () => pm.expect(body.id).to.be.a('number'));",
+        "pm.collectionVariables.set('conversationId', body.id);"
+      ] } }],
+      "request": { "method": "POST", "url": "{{baseUrl}}/api/conversations" }
+    },
+    {
+      "name": "3. Send message",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 201', () => pm.response.to.have.status(201));",
+        "const body = pm.response.json();",
+        "pm.test('User message saved', () => pm.expect(body.user_message.role).to.eql('user'));",
+        "pm.test('Assistant answered', () => {",
+        "    pm.expect(body.assistant_message.role).to.eql('assistant');",
+        "    pm.expect(body.assistant_message.content.toLowerCase()).to.include('paris');",
+        "});"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"content\": \"What is the capital of France? Answer in English.\"\n}" },
+        "url": "{{baseUrl}}/api/conversations/{{conversationId}}/messages"
+      }
+    },
+    {
+      "name": "4. Send follow-up message (context)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 201', () => pm.response.to.have.status(201));",
+        "pm.test('Model understood the context (Rome)', () => {",
+        "    const answer = pm.response.json().assistant_message.content.toLowerCase();",
+        "    pm.expect(answer).to.include('rome');",
+        "});"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"content\": \"And what about Italy?\"\n}" },
+        "url": "{{baseUrl}}/api/conversations/{{conversationId}}/messages"
+      }
+    },
+    {
+      "name": "5. Get conversation history",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 200', () => pm.response.to.have.status(200));",
+        "const messages = pm.response.json();",
+        "pm.test('4 messages saved', () => pm.expect(messages.length).to.eql(4));",
+        "pm.test('Roles alternate user/assistant', () => {",
+        "    pm.expect(messages.map(m => m.role)).to.eql(['user', 'assistant', 'user', 'assistant']);",
+        "});",
+        "pm.test('Messages are in chronological order', () => {",
+        "    for (let i = 1; i < messages.length; i++) {",
+        "        pm.expect(messages[i].id).to.be.above(messages[i - 1].id);",
+        "    }",
+        "});"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/conversations/{{conversationId}}/messages" }
+    },
+    {
+      "name": "6. New conversation is separate",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 201', () => pm.response.to.have.status(201));",
+        "const body = pm.response.json();",
+        "pm.test('Got a different id', () => pm.expect(body.id).to.not.eql(Number(pm.collectionVariables.get('conversationId'))));",
+        "pm.collectionVariables.set('secondConversationId', body.id);"
+      ] } }],
+      "request": { "method": "POST", "url": "{{baseUrl}}/api/conversations" }
+    },
+    {
+      "name": "7. New conversation history is empty",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('No messages from the other conversation', () => pm.expect(pm.response.json()).to.eql([]));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/conversations/{{secondConversationId}}/messages" }
+    },
+    {
+      "name": "Error: conversation not found (404)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 404', () => pm.response.to.have.status(404));",
+        "pm.test('Has error message', () => pm.expect(pm.response.json().detail).to.be.a('string'));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/conversations/999999/messages" }
+    },
+    {
+      "name": "Error: empty message (422)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 422', () => pm.response.to.have.status(422));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"content\": \"   \"\n}" },
+        "url": "{{baseUrl}}/api/conversations/{{conversationId}}/messages"
+      }
+    },
+    {
+      "name": "Error: missing content field (422)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 422', () => pm.response.to.have.status(422));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": "{{baseUrl}}/api/conversations/{{conversationId}}/messages"
+      }
+    },
+    {
+      "name": "Error: send to missing conversation (404)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 404', () => pm.response.to.have.status(404));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"content\": \"hello\"\n}" },
+        "url": "{{baseUrl}}/api/conversations/999999/messages"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+# Secrets - never upload!
+.env
+
+# Python
+env/
+venv/
+__pycache__/
+*.pyc
+
+# Node / React
+node_modules/
+dist/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
