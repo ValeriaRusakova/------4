@@ -86,6 +86,7 @@ function App() {
         activeConversationId={chat.conversationId}
         onSelectConversation={handleSelectConversation}
         onNewChat={handleNewChat}
+        onDeleteConversation={chat.removeConversation}
         isBusy={chat.isLoading}
         isOpen={isSidebarOpen}
         onClose={closeSidebar}

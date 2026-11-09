@@ -58,3 +58,13 @@ def create_image(prompt):
         image_file.write(image_bytes)
 
     return f"/images/{file_name}"
+
+
+def delete_image(image_url):
+    """Delete the file of an image, for example "/images/abc123.webp" (used when a conversation is deleted)."""
+    # basename() keeps only the file name, so nobody can reach files outside the images folder
+    file_name = os.path.basename(image_url)
+    file_path = os.path.join(IMAGES_FOLDER, file_name)
+
+    if os.path.isfile(file_path):
+        os.remove(file_path)

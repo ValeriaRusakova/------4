@@ -435,6 +435,7 @@ button:disabled {
 }
 
 .history {
+  position: relative; /* keeps the hidden screen-reader status text inside */
   flex: 1;
   min-height: 0;
   display: flex;
@@ -517,6 +518,49 @@ button:disabled {
   flex-shrink: 0;
   font-size: 0.75rem;
   color: var(--text-soft);
+}
+
+/* One row = the conversation button + the trash button next to it */
+.conversation-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.conversation-row .conversation-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.delete-button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-soft);
+  opacity: 0; /* hidden until the mouse is over the row... */
+}
+
+/* ...or the keyboard focus is inside the row */
+.conversation-row:hover .delete-button,
+.conversation-row:focus-within .delete-button {
+  opacity: 1;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
+/* Touch screens have no "hover", so the button is always visible there */
+@media (hover: none) {
+  .delete-button {
+    opacity: 1;
+  }
 }
 
 .ideas-card {

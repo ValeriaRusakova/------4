@@ -3,10 +3,11 @@ routes/conversations.py
 -----------------------
 The API endpoints (URLs) for conversations and messages.
 
-  GET  /api/conversations                      -> list of conversations for the sidebar
-  POST /api/conversations                      -> start a new conversation
-  GET  /api/conversations/{id}/messages        -> get all messages of a conversation
-  POST /api/conversations/{id}/messages        -> send a message and get the AI answer
+  GET    /api/conversations                      -> list of conversations for the sidebar
+  POST   /api/conversations                      -> start a new conversation
+  DELETE /api/conversations/{id}                 -> delete a conversation (and its messages)
+  GET    /api/conversations/{id}/messages        -> get all messages of a conversation
+  POST   /api/conversations/{id}/messages        -> send a message and get the AI answer
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -17,6 +18,7 @@ from database import get_db
 from models import Conversation, Message
 from schemas import ChatReply, ConversationOut, MessageCreate, MessageOut
 from services.chat_service import ChatServiceError, create_title, get_ai_reply
+from services.image_service import delete_image
 
 router = APIRouter(prefix="/api/conversations", tags=["Conversations"])
 
@@ -52,6 +54,29 @@ def create_conversation(db: Session = Depends(get_db)):
     db.commit()
     db.refresh(conversation)  # load the id and created_at that MySQL generated
     return conversation
+
+
+@router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_conversation(conversation_id: int, db: Session = Depends(get_db)):
+    """
+    Delete one conversation that the user chose in the sidebar.
+    Its messages are deleted together with it (ON DELETE CASCADE),
+    and the image files it created are removed from the server.
+    Returns 204 = "done, nothing to send back".
+    """
+    conversation = find_conversation_or_404(conversation_id, db)
+
+    # Remember the images before the messages are gone
+    image_urls = []
+    for message in conversation.messages:
+        if message.image_url is not None:
+            image_urls.append(message.image_url)
+
+    db.delete(conversation)
+    db.commit()
+
+    for image_url in image_urls:
+        delete_image(image_url)
 
 
 @router.get("/{conversation_id}/messages", response_model=list[MessageOut])

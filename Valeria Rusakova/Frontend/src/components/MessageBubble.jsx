@@ -8,6 +8,17 @@ import { UserIcon } from "./Icons.jsx";
 import { API_BASE_URL } from "../services/api.js";
 import { formatTime } from "../utils/formatTime.js";
 
+// Links inside AI answers (for example web search sources) open in a new tab,
+// so the user does not leave the chat.
+function MarkdownLink({ href, children }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer">
+      {children}
+      <span className="visually-hidden"> (נפתח בלשונית חדשה)</span>
+    </a>
+  );
+}
+
 function MessageBubble({ message }) {
   const isUser = message.role === "user";
 
@@ -27,7 +38,7 @@ function MessageBubble({ message }) {
             <p dir="auto">{message.content}</p>
           ) : (
             <div className="markdown" dir="auto">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+              <ReactMarkdown components={{ a: MarkdownLink }}>{message.content}</ReactMarkdown>
             </div>
           )}
 

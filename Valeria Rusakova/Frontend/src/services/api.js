@@ -46,6 +46,11 @@ export function getMessages(conversationId) {
   return request(`/api/conversations/${conversationId}/messages`);
 }
 
+// DELETE /api/conversations/{id} -> deletes the conversation (the server answers 204, no content)
+export function deleteConversation(conversationId) {
+  return request(`/api/conversations/${conversationId}`, { method: "DELETE" });
+}
+
 // POST /api/conversations/{id}/messages -> { user_message, assistant_message, conversation }
 export function sendMessage(conversationId, content) {
   return request(`/api/conversations/${conversationId}/messages`, {

@@ -149,6 +149,50 @@
       "request": { "method": "GET", "url": "{{baseUrl}}{{imageUrl}}" }
     },
     {
+      "name": "10. Web search (up-to-date information)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 201', () => pm.response.to.have.status(201));",
+        "pm.test('The answer includes a link to a source', () => {",
+        "    pm.expect(pm.response.json().assistant_message.content).to.include('http');",
+        "});"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"content\": \"What will the weather be tomorrow in Tel Aviv? Answer in English.\"\n}" },
+        "url": "{{baseUrl}}/api/conversations/{{secondConversationId}}/messages"
+      }
+    },
+    {
+      "name": "11. Delete conversation",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 204 (deleted, no content)', () => pm.response.to.have.status(204));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/api/conversations/{{secondConversationId}}" }
+    },
+    {
+      "name": "12. Deleted conversation is gone",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 404', () => pm.response.to.have.status(404));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/conversations/{{secondConversationId}}/messages" }
+    },
+    {
+      "name": "13. Deleted image file is gone",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 404', () => pm.response.to.have.status(404));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}{{imageUrl}}" }
+    },
+    {
+      "name": "14. Other conversation was not deleted",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('Still has its 4 messages', () => pm.expect(pm.response.json().length).to.eql(4));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/conversations/{{conversationId}}/messages" }
+    },
+    {
       "name": "Error: conversation not found (404)",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('Status 404', () => pm.response.to.have.status(404));",
@@ -191,6 +235,13 @@
         "body": { "mode": "raw", "raw": "{\n  \"content\": \"hello\"\n}" },
         "url": "{{baseUrl}}/api/conversations/999999/messages"
       }
+    },
+    {
+      "name": "Error: delete missing conversation (404)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Status 404', () => pm.response.to.have.status(404));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/api/conversations/999999" }
     }
   ]
 }

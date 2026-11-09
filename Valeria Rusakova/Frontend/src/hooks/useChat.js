@@ -3,7 +3,13 @@
 // App.jsx calls useChat() once, and passes the data and functions to the
 // Sidebar (list of conversations) and to the ChatPage (the messages).
 import { useEffect, useState } from "react";
-import { createConversation, getConversations, getMessages, sendMessage } from "../services/api.js";
+import {
+  createConversation,
+  deleteConversation,
+  getConversations,
+  getMessages,
+  sendMessage,
+} from "../services/api.js";
 
 function useChat() {
   const [conversations, setConversations] = useState([]); // for the sidebar
@@ -53,6 +59,29 @@ function useChat() {
       setMessages([]);
     } catch (error) {
       setErrorMessage(error.message);
+    }
+  }
+
+  // Trash button in the sidebar: delete a conversation from the server and from the list.
+  // Returns true if it worked.
+  async function removeConversation(id) {
+    if (isLoading) {
+      return false;
+    }
+    setErrorMessage("");
+    try {
+      await deleteConversation(id);
+      setConversations((previous) => previous.filter((conversation) => conversation.id !== id));
+
+      // If the open conversation was deleted, clear the screen
+      if (id === conversationId) {
+        setConversationId(null);
+        setMessages([]);
+      }
+      return true;
+    } catch (error) {
+      setErrorMessage(error.message);
+      return false;
     }
   }
 
@@ -107,6 +136,7 @@ function useChat() {
     errorMessage,
     openConversation,
     startNewChat,
+    removeConversation,
     sendUserMessage,
   };
 }

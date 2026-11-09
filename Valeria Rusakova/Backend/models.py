@@ -23,7 +23,15 @@ class Conversation(Base):
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), index=True)
 
     # All messages of this conversation, always sorted from oldest to newest.
-    messages = relationship("Message", back_populates="conversation", order_by="Message.id")
+    # passive_deletes=True: when a conversation is deleted, MySQL deletes its messages
+    # by itself (ON DELETE CASCADE in the database).
+    messages = relationship(
+        "Message",
+        back_populates="conversation",
+        order_by="Message.id",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 class Message(Base):
